@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Product Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #fffaf2; /* हल्का orange white background */
+    }
+    h2 {
+      text-align: center;
+      color: #ff6600; /* orange heading */
+    }
+    .form-container {
+      background: #ffffff;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border: 2px solid #ff6600;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #ff6600; /* orange button */
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #e65c00; /* darker orange */
+    }
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 30px;
+      justify-content: center;
+    }
+    .product-card {
+      background: #ffffff;
+      border: 2px solid #ff6600;
+      border-radius: 10px;
+      width: 220px;
+      text-align: center;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .product-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #ff6600;
+    }
+    .remove-btn {
+      background: #ff6600;
+      color: white;
+      border: none;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .remove-btn:hover {
+      background: #e65c00;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🛒 Admin - Product Management</h2>
+
+  <div class="form-container">
+    <h3 style="color:#ff6600;">Add New Product</h3>
+    <input type="text" id="productName" placeholder="Enter product name" required>
+    <input type="number" id="productPrice" placeholder="Enter product price" required>
+    <select id="productCategory" required>
+      <option value="">Select Category</option>
+      <option value="men">Men's Clothing</option>
+      <option value="women">Women's Clothing</option>
+      <option value="kids">Kids Clothing</option>
+      <option value="accessories">Accessories</option>
+    </select>
+    <select id="priceRange" required>
+      <option value="">Select Price Range</option>
+      <option value="100-200">₹100-200</option>
+      <option value="200-300">₹200-300</option>
+      <option value="300-400">₹300-400</option>
+      <option value="400-500">₹400-500</option>
+      <option value="500-600">₹500-600</option>
+    </select>
+    <input type="file" id="productImage" accept="image/*" required>
+    <button onclick="addProduct()">Add Product</button>
+  </div>
+
+  <div style="text-align:center; margin:20px 0;">
+    <h3 style="color:#ff6600; display:inline;">Product List</h3>
+    <button onclick="clearAllProducts()" style="background:#ff4444; color:white; border:none; padding:8px 15px; margin-left:20px; border-radius:5px; cursor:pointer;">Clear All Products</button>
+  </div>
+  <div class="product-list" id="productList">
+    <!-- Products will be shown here -->
+  </div>
+
+  <script>
+    // Load products from localStorage on page load
+    window.onload = function() {
+      loadProducts();
+    };
+
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const price = document.getElementById("productPrice").value;
+      const category = document.getElementById("productCategory").value;
+      const priceRange = document.getElementById("priceRange").value;
+      const imageInput = document.getElementById("productImage");
+
+      if (name === "" || price === "" || category === "" || priceRange === "" || imageInput.files.length === 0) {
+        alert("Please fill all fields!");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        // Create product object
+        const product = {
+          id: Date.now(), // Unique ID
+          name: name,
+          price: price,
+          category: category,
+          priceRange: priceRange,
+          image: e.target.result,
+          dateAdded: new Date().toLocaleDateString()
+        };
+
+        // Save to localStorage
+        saveProduct(product);
+        
+        // Add to display
+        addProductToDisplay(product);
+        
+        // Reset form
+        document.getElementById("productName").value = "";
+        document.getElementById("productPrice").value = "";
+        document.getElementById("productCategory").value = "";
+        document.getElementById("priceRange").value = "";
+        document.getElementById("productImage").value = "";
+        
+        alert("Product added successfully! It will appear in the products section.");
+      };
+      reader.readAsDataURL(imageInput.files[0]);
+    }
+
+    function saveProduct(product) {
+      let products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+      products.push(product);
+      localStorage.setItem('adminProducts', JSON.stringify(products));
+    }
+
+    function loadProducts() {
+      const products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+      const productList = document.getElementById("productList");
+      productList.innerHTML = "";
+      
+      products.forEach(product => {
+        addProductToDisplay(product);
+      });
+    }
+
+    function addProductToDisplay(product) {
+      const productList = document.getElementById("productList");
+      const productCard = document.createElement("div");
+      productCard.classList.add("product-card");
+      productCard.setAttribute("data-id", product.id);
+      productCard.innerHTML = `
+        <img src="${product.image}" alt="${product.name}">
+        <h4 style="color:#ff6600;">${product.name}</h4>
+        <p style="font-weight:bold;">₹${product.price}</p>
+        <p style="font-size:12px; color:#666;">Category: ${product.category}</p>
+        <p style="font-size:12px; color:#666;">Range: ₹${product.priceRange}</p>
+        <p style="font-size:10px; color:#999;">Added: ${product.dateAdded}</p>
+        <button class="remove-btn" onclick="removeProduct(${product.id})">Remove</button>
+      `;
+      productList.appendChild(productCard);
+    }
+
+    function removeProduct(productId) {
+      if (confirm("Are you sure you want to remove this product?")) {
+        // Remove from localStorage
+        let products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+        products = products.filter(p => p.id !== productId);
+        localStorage.setItem('adminProducts', JSON.stringify(products));
+        
+        // Remove from display
+        const productCard = document.querySelector(`[data-id="${productId}"]`);
+        if (productCard) {
+          productCard.remove();
+        }
+      }
+    }
+
+    // Function to clear all products (for testing)
+    function clearAllProducts() {
+      if (confirm("Are you sure you want to clear all products?")) {
+        localStorage.removeItem('adminProducts');
+        document.getElementById("productList").innerHTML = "";
+      }
+    }
+  </script>
+
+</body>
+</html>
